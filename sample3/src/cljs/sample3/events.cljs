@@ -1,6 +1,7 @@
 (ns sample3.events
   (:require
     [re-frame.core :as rf]
+    [day8.re-frame.tracing :refer-macros [fn-traced]]
     [ajax.core :as ajax]
     [reitit.frontend.easy :as rfe]
     [reitit.frontend.controllers :as rfc]))
@@ -48,6 +49,12 @@
   (fn [_ _]
     {:dispatch [:fetch-docs]}))
 
+;; Dispatches for Sample 1 implementation
+(rf/reg-event-db
+  :set-total
+  (fn-traced [db [_ new-total]]
+      (assoc db :total new-total)))
+
 ;;subscriptions
 
 (rf/reg-sub
@@ -76,3 +83,9 @@
   :common/error
   (fn [db _]
     (:common/error db)))
+
+;; Sample 1 subs
+(rf/reg-sub
+  :total
+  (fn [db _]
+      (:total db)))

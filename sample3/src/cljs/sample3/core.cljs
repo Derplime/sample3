@@ -11,7 +11,8 @@
     [sample3.events]
     [reitit.core :as reitit]
     [reitit.frontend.easy :as rfe]
-    [clojure.string :as string])
+    [clojure.string :as string]
+    [ajax.core :refer [GET POST]])
   (:import goog.History))
 
 (defn nav-link [uri title page]
@@ -79,7 +80,7 @@
 
   (<= 0 34 48)
 
-  (defn home-page []
+  (defn home-page-sample1 []
         (let [params (r/atom {})]
              [:section.section>div.container>div.content
               [:h1 "Hello World!"]
@@ -105,10 +106,55 @@
               ]))
   )
 
+; TODO - update to clojure parseInt
+(defn int-value [v]
+      (-> v .-target .-value int))
+
+(defn math [params operation]
+      (POST (str "/api/math/" operation)
+            {:headers {"accept" "application/transit-json"}
+             :params  @params
+             :handler #(rf/dispatch [:set-total (:total %)])}))
+
+(defn getAdd []
+      (GET "/api/math/plus?x=1&y=2"
+           {:headers {"accept" "application/json"}
+            :handler #(rf/dispatch [:set-total (:total %)])}))
+
+; Function to update the color of the p tag class
+(defn change-color []
+      (let [total @(rf/subscribe [:total])]
+      (cond
+        (<= 0 total 19) {:style {:color "lightgreen" :font-weight :bold}}
+        (<= 20 total 49) {:style {:color "lightblue" :font-weight :bold}}
+        :default {:style {:color "lightsalmon" :font-weight :bold}})))
+
 (defn home-page []
+  (let [total @(rf/subscribe [:total])
+        params (r/atom {})]
   [:section.section>div.container>div.content
-   (when-let [docs @(rf/subscribe [:docs])]
-     [:div {:dangerouslySetInnerHTML {:__html (md->html docs)}}])])
+   [:h1 "Hello World! I'm Sample 3!"]
+   [:h3 "The button below will compute the result of 1 + 2. Results will appear at the bottom."]
+   [:button.button.is-primary {:on-click #(getAdd)} "1 + 2"]
+   [:h3 "Fill out fields and select the desired operation. Result in text at the bottom."]
+   [:h3 "The computation will be read as (Value 1) (Operator) (Value 2)"]
+   [:form
+    [:div.form-group
+     [:label "Value 1: "]
+     [:input {:type :text :placeholder "0" :on-change #(swap! params assoc :x (int-value %))}]]
+    [:div.form-group
+     [:label "Value 2: "]
+     [:input {:type :text :placeholder "0" :on-change #(swap! params assoc :y (int-value %))}]]]
+   [:br]
+   [:button.button.is-primary {:on-click #(math params "plus")} "+"]
+   [:button.button.is-info {:on-click #(math params "minus")} "-"]
+   [:button.button.is-warning {:on-click #(math params "multiply")} "*"]
+   [:button.button.is-danger {:on-click #(math params "divide")} "/"]
+   [:br]
+   [:br]
+   [:div "Your calculated result is: "
+    [:span (change-color) total]]
+   ]))
 
 (defn page []
   (if-let [page @(rf/subscribe [:common/page])]
