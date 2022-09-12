@@ -110,11 +110,13 @@
 (defn int-value [v]
       (-> v .-target .-value int))
 
-(defn math [params operation]
+(defn math [operation]
+      (let [xVal @(rf/subscribe [:xVal])
+            yVal @(rf/subscribe [:yVal])]
       (POST (str "/api/math/" operation)
             {:headers {"accept" "application/transit-json"}
-             :params  @params
-             :handler #(rf/dispatch [:set-total (:total %)])}))
+             :params  {:x xVal :y yVal}
+             :handler #(rf/dispatch [:set-total (:total %)])})))
 
 (defn getAdd []
       (GET "/api/math/plus?x=1&y=2"
@@ -134,22 +136,22 @@
         params (r/atom {})]
   [:section.section>div.container>div.content
    [:h1 "Hello World! I'm Sample 3!"]
-   [:h3 "The button below will compute the result of 1 + 2. Results will appear at the bottom."]
+   [:h3 "The button below will compute the result of 1 + 2. The result will appear at the bottom."]
    [:button.button.is-primary {:on-click #(getAdd)} "1 + 2"]
-   [:h3 "Fill out fields and select the desired operation. Result in text at the bottom."]
+   [:h3 "Fill out fields and select the desired operation. The result will appear at the bottom."]
    [:h3 "The computation will be read as (Value 1) (Operator) (Value 2)"]
    [:form
     [:div.form-group
      [:label "Value 1: "]
-     [:input {:type :text :placeholder "0" :on-change #(swap! params assoc :x (int-value %))}]]
+     [:input {:type :text :placeholder "0" :on-change #(rf/dispatch [:set-xVal (int-value %)])}]]
     [:div.form-group
      [:label "Value 2: "]
-     [:input {:type :text :placeholder "0" :on-change #(swap! params assoc :y (int-value %))}]]]
+     [:input {:type :text :placeholder "0" :on-change #(rf/dispatch [:set-yVal (int-value %)])}]]]
    [:br]
-   [:button.button.is-primary {:on-click #(math params "plus")} "+"]
-   [:button.button.is-info {:on-click #(math params "minus")} "-"]
-   [:button.button.is-warning {:on-click #(math params "multiply")} "*"]
-   [:button.button.is-danger {:on-click #(math params "divide")} "/"]
+   [:button.button.is-primary {:on-click #(math "plus")} "+"]
+   [:button.button.is-info {:on-click #(math "minus")} "-"]
+   [:button.button.is-warning {:on-click #(math "multiply")} "*"]
+   [:button.button.is-danger {:on-click #(math "divide")} "/"]
    [:br]
    [:br]
    [:div "Your calculated result is: "

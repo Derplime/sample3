@@ -55,6 +55,16 @@
   (fn-traced [db [_ new-total]]
       (assoc db :total new-total)))
 
+(rf/reg-event-db
+  :set-xVal
+  (fn-traced [db [_ new-xVal]]
+      (assoc db :xVal new-xVal)))
+
+(rf/reg-event-db
+  :set-yVal
+  (fn-traced [db [_ new-yVal]]
+             (assoc db :yVal new-yVal)))
+
 ;;subscriptions
 
 (rf/reg-sub
@@ -89,3 +99,13 @@
   :total
   (fn [db _]
       (:total db)))
+
+(rf/reg-sub
+  :xVal
+  (fn [db _]
+      (:xVal db)))
+
+(rf/reg-sub
+  :yVal
+  (fn [db _]
+      (:yVal db)))
